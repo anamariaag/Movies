@@ -5,7 +5,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import styles from "./App.module.css";
 
-import movies from "./movies.json"
+import movies from "./movies.json";
+import Navbar from './components/header/navbar';
 
 export function App() {
     const settings = {
@@ -18,6 +19,7 @@ export function App() {
 
     return (
         <div>
+            <Navbar />
             <header>
                 <h1 className={styles.title}>Movies</h1>
             </header>
