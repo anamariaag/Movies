@@ -1,5 +1,5 @@
 import requests as req
-from connect_db import COLLECTION
+from connect_db import COLLECTION_MOVIES
 
 data = req.get("https://datasets-server.huggingface.co/rows?dataset=AIatMongoDB%2Fembedded_movies&config=default&split=train&offset=0&length=100")
 
@@ -28,9 +28,12 @@ for movie in data_movies:
     movie_data["image_url"] = movie_data.pop("poster", None)
     clean_data_movies.append(movie_data) 
 
-if COLLECTION.find_one({}) is not None:
+if COLLECTION_MOVIES.find_one({}) is not None:
     print("Ya se insertaron las peliculas")
 else:
-    res = COLLECTION.insert_many(clean_data_movies)
+    res = COLLECTION_MOVIES.insert_many(clean_data_movies)
     print("IDs:", res.inserted_ids)
-# res = COLLECTION.delete_many({})
+res = COLLECTION_MOVIES.find({})
+
+for document in res:
+    print(document)
