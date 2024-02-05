@@ -3,6 +3,7 @@ from data.connect_db import COLLECTION_MOVIES, COLLECTION_PERSON
 from abc import abstractmethod
 from Movie import Movie
 from Account import Account
+from bson import ObjectId
 import json
 
 class Person():
@@ -16,8 +17,8 @@ class Person():
         self.type_account: str = type_account
 
     @abstractmethod
-    def mongo_to_person(self, id):
-        '''Abstract method to get information of a specified user from the database'''
+    def mongo_to_person(self, id) -> object:
+        '''Abstract method to convert a mongo json to a person object'''
         pass
 
 
@@ -34,9 +35,9 @@ class Administrator(Person):
         COLLECTION_PERSON.insert_one(admin)
         
     @staticmethod
-    def create_movie(movie: Movie):
-        movie_json = {"id" : movie.id,
-                    "title" : movie.name,
+    def create_movie(movie: Movie) -> str:
+        '''Creates movie with a Movie object'''
+        movie_json = {"title" : movie.title,
                     "price" : movie.price,
                     "directors" : movie.directors,
                     "full_plot" : movie.full_plot,
@@ -44,11 +45,12 @@ class Administrator(Person):
                     "image_url": movie.image_url,
                     "status" : movie.status
                     }
-        new_movie = COLLECTION_MOVIES.insert_one(json.dumps(movie_json))
-        return new_movie
+        new_movie = COLLECTION_MOVIES.insert_one(movie_json)
+        return f'Movie added to collection'
     
     @staticmethod
     def read_movies(filters) -> [Movie]:
+        '''Returns all the movies in the page following the given filters'''
         res = COLLECTION_MOVIES.find({})
         movies = []
         for document in res:
@@ -59,11 +61,12 @@ class Administrator(Person):
         return movies
     
     @staticmethod
-    def update_movie(_id, content_to_change):
+    def update_movie(_id: str, content_to_change: Movie) -> str:
+        '''Updates a movie in the database'''
+        movie_id = ObjectId(_id)
         update_movie = {
             "$set" : {
-                "id" : content_to_change.id,
-                "title" : content_to_change.name,
+                "title" : content_to_change.title,
                 "price" : content_to_change.price,
                 "directors" : content_to_change.directors,
                 "full_plot" : content_to_change.full_plot,
@@ -73,12 +76,27 @@ class Administrator(Person):
             }
         }
 
-        res = COLLECTION_MOVIES.find_one_and_update({"_id" : _id}, update_movie, {"new" : "true"})
-        return res
+        res = COLLECTION_MOVIES.find_one_and_update({"_id" : movie_id}, update_movie, {"new" : "true"})
+        if res is None:
+            return f'Movie not found'
+        else:
+            return f'Movie updated successfully'
+    
+    @staticmethod
+    def delete_movie(_id) -> str:
+        '''Deletes a movie from the database'''
+        movie_id = ObjectId(_id)
+        res = COLLECTION_MOVIES.find_one_and_delete({"_id" : movie_id})
+        if res  is None:
+            return f'Movie not found'
+        else:
+            return f'Movie has been deleted succesfully'
     
     @staticmethod
     def get_user(_id) -> User:
-        res = COLLECTION_PERSON.find_one({"_id" : _id})
+        '''Returns the specified user from the database'''
+        user_id = ObjectId(_id)
+        res = COLLECTION_PERSON.find_one({"_id" : user_id})
         if res is None:
             return f'User not found'
         else:
@@ -87,6 +105,7 @@ class Administrator(Person):
     
     @staticmethod
     def get_users():
+        '''Returns an array of all the users'''
         res = COLLECTION_PERSON.find({})
         users = []
         for document in res:
@@ -98,8 +117,10 @@ class Administrator(Person):
         return users
     
     @staticmethod
-    def mongo_to_person(id: str) -> None: 
-        res = COLLECTION_PERSON.find_one({"id" : id})
+    def mongo_to_person(_id: str) -> str: 
+        '''Converts a mongo document to a Admin object'''
+        admin_id = ObjectId(_id)
+        res = COLLECTION_PERSON.find_one({"_id" : admin_id})
         if res is None:
             return f'Admin not found'
         else:
@@ -120,6 +141,7 @@ class User(Person):
         COLLECTION_PERSON.insert_one(user)
     
     def create_account(self, username: str) -> None:
+        '''Creates an account for the user and appends it to the accounts list'''
         account = Account(username)
         self.accounts.append(account)
         accounts_dict = [account.to_dict() for account in self.accounts]
@@ -131,8 +153,10 @@ class User(Person):
         res = COLLECTION_PERSON.find_one_and_update({"id" : self.id}, update_user, return_document=True)
     
     @staticmethod
-    def mongo_to_person(_id: str) -> None: 
-        res = COLLECTION_PERSON.find_one({"id" : _id})
+    def mongo_to_person(_id: str) -> None:
+        '''Converts a Mongo document into a User object'''
+        person_id = ObjectId(_id) 
+        res = COLLECTION_PERSON.find_one({"_id" : person_id})
         if res is None:
             return f'User not found'
         else:
@@ -141,6 +165,13 @@ class User(Person):
 
 
 # admin = Administrator("admin_1", "Jorge", "jorge@gmail", "123")
+# movie = Movie.mongo_to_movie('65bea9e0c1ecc99b1b6283da')
+# movie.price = 299
+# admin.update_movie('65bea9e0c1ecc99b1b6283da', movie)
+# created_movie = Movie("Avengers", 199, ["Joe Russo", "Anthony Russo", "Josh Wedon"], "Avengers fight aliens that invade New York", "Avengers fight", "image.url", "available")
+# admin.create_movie(created_movie)
+
         
 # user = User("user_1", "Miguel", "miguel@gmail", "321")
 # user.create_account("miguelito122")
+# user.accounts[0].rent_movie('65bea9e0c1ecc99b1b6283d9')
