@@ -5,6 +5,7 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 import styles from "./App.module.css";
 
+
 import 'bulma/css/bulma.min.css';
 import movies from "./movies.json";
 import Navbar from './components/header/navbar';
