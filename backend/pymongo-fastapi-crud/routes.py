@@ -6,6 +6,8 @@ from models import Person, PersonUpdate, Movie, MovieUpdate
 
 router = APIRouter()
 
+
+'''Routes for person'''
 @router.post("/person", response_description="Create a new person", status_code=status.HTTP_201_CREATED, response_model=Person)
 def create_person(request: Request, person: Person = Body(...)):
     person = jsonable_encoder(person)
@@ -21,6 +23,8 @@ def list_person(request: Request):
     return persons
 
 
+
+'''Routes for movies'''
 @router.post("/movies", response_description="Create a new movie", status_code=status.HTTP_201_CREATED, response_model=Movie)
 def create_book(request: Request, book: Movie = Body(...)):
     movie = jsonable_encoder(movie)
@@ -69,3 +73,6 @@ def delete_movie(id: str, request: Request, response: Response):
         return response
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"Movie with ID {id} not found")
+
+
+'''Routes for account'''
